@@ -1,9 +1,10 @@
-#include<stdio.h>
-#include<windows.h>
-#include <conio.h>
-#include <stdlib.h>
-#include"book_management.h"
+
 #include"interface.h"
+
+#include <stdio.h>
+#include <conio.h>
+#include<windows.h>
+#include <stdlib.h>
 
 //让光标处在特定位置 
 void setxy(int a,int b) 
@@ -31,7 +32,8 @@ int xlocation()
 void Mainmenu()
 {
     do
-	{
+	{	
+		system("cls");
 		int a, b;
     	int Num;
     	setxy(31,5);

@@ -28,7 +28,6 @@ typedef struct _BookArray {
 
 typedef Book* pbook;
 
-
 //saves the database of books in the specified file
 //returns 0 if books were stored correctly, or an error code otherwise
 int store_books(FILE *file);
@@ -63,8 +62,6 @@ BookArray find_book_by_author (const char *author);
 //provided title can be found. The length of the array is also recorded in the returned structure, with 0 in case
 //array is the null pointer.
 BookArray find_book_by_year (unsigned int year);
-
-
 
 
 
