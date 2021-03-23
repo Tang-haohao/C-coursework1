@@ -1,6 +1,8 @@
 #ifndef BOOK_MANAGEMENT_GUARD__H 
 #define BOOK_MANAGEMENT_GUARD__H
 
+#include"interface.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
@@ -63,6 +65,11 @@ BookArray find_book_by_author (const char *author);
 //array is the null pointer.
 BookArray find_book_by_year (unsigned int year);
 
+//finds books published in the given ID.
+void find_book_by_ID ();
+//修改数目
+int amend_book(); 
 
-
+//查询书籍 
+void search_book();
 #endif
