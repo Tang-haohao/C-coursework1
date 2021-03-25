@@ -2,7 +2,6 @@
 #include <string.h>
 
 //变量域 
-extern pbook bookhead;
 extern account logger;
 char register_account[30]="",register_password[10]="";
 char librarian_account[]={"librarian"};//图书管理员的账号
@@ -13,27 +12,27 @@ Account accounts;
 int display_book()   //总览所有图书 
 {
 	system("cls");
-	pbook book_head,pdisplay;
+	pbook book_head=load_books(),pdisplay=NULL;
 	int total=0;
-	book_head=bookhead;
-	printf("**************************图书总览*****************************\n");
-	printf("---------------------------------------------------------------\n");
-	printf("登录号        书名        作者名         出版时间          数量\n");
-	printf("---------------------------------------------------------------\n");
+	book_head=load_books();
+	printf("\t\t**********************Book information******************************\n");
+	printf("\t\t--------------------------------------------------------------------\n");
+	printf("\t\t     ID        Title        authors         years        copies     \n");
+	printf("\t\t--------------------------------------------------------------------\n");
 	if(book_head==NULL)
 	{
-		printf("书库暂时没有书哦~赶快去添加几本吧^_^\n");
+		printf("\t\tThere are no books in the library for a while. Please add some^_^\n");
 		system("pause");
 		return 0;
 	}
 	pdisplay=book_head;
 	while(pdisplay!=NULL)
 	{
-		printf("%d%14s%14s         %.2f%12d\n",pdisplay->id,pdisplay->title,pdisplay->authors,pdisplay->year,pdisplay->copies);
-		total+=pdisplay->copies;//图书总数 
+		printf("\t\t   %u\t\t%s\t\t%s\t\t%u\t\t%u\n",pdisplay->id,pdisplay->title,pdisplay->authors,pdisplay->year,pdisplay->copies);				
+		total+=pdisplay->copies;//图书的总数量 
 		pdisplay=pdisplay->nextbook;
 	}
-	printf("图书总量为：%d\n",total);
+	printf("\t\tThe total number of books is：%d\n",total);
 	system("pause");
 	return 0;
 }
@@ -42,62 +41,89 @@ void borrow()
 {
 	char ny;
 	int d=0; 
-	FILE *afile;
-	pbook book_head,pfind;
-	book_head = bookhead;
+	FILE *afile,*file;
+	pbook book_head,pfind,pointer;
+	book_head = load_books();
 	unsigned int iD;
 	if(logger->Borrow<5) //判断用户借阅书籍数是否已到达上限 
 	{
 		system("cls");
 		while(1)
 		{
-			printf("请输入您要借阅图书的ID：\n");
+			printf("\t\tPlease enter the ID of the book you want to borrow:");
 			scanf("%u", &iD); 
-			printf("正在查询....\n");
+			printf("\n\t\tIn process of Querying\n");
 			pfind=book_head;
-			printf("**************************图书总览*****************************\n");
-			printf("---------------------------------------------------------------\n");
-			printf("登录号        书名        作者名         出版时间          数量\n");
-			printf("---------------------------------------------------------------\n");
+			printf("\t\t**********************Book information******************************\n");
+			printf("\t\t--------------------------------------------------------------------\n");
+			printf("\t\t     ID        Title        authors         years        copies     \n");
+			printf("\t\t--------------------------------------------------------------------\n");
 			while(pfind!=NULL)
 			{
 				if(pfind!=NULL&&pfind->id==iD)
 				{
-					printf("%d%14s%14s         %.2f%12d\n",pfind->id,pfind->title,pfind->authors,pfind->year,pfind->copies);
+					printf("\t\t   %u\t\t%s\t\t%s\t\t%u\t\t%u\n",pfind->id,pfind->title,pfind->authors,pfind->year,pfind->copies);			
 					break;  
 				}
 				pfind=pfind->nextbook;
 			}	
 			if(pfind==NULL)
 			{
-				printf("书库中不存在此书，请输入正确的id"); 
+				printf("\t\tThis book does not exist in the library, please enter the correct ID\n"); 
 				break; 
 			}
 			else if(pfind->copies>0)
 			{
-				printf("您是否需要借阅此书：'Y' or 'N' \n");
+				printf("\t\tDo you need to borrow this book：1. To borrow or 2. Not to borrow\n");
 				ny = getch();
-				if(ny == 'Y') //让用户选择是否借阅 
+				if(ny == '1') //让用户选择是否借阅 
 				{
 					pfind->copies=pfind->copies-1; 
 					logger->borrow[logger->Borrow]=iD;
 					logger->Borrow=logger->Borrow+1;
-					printf("借阅成功，按任意键返回。。。\n");
-					store_books(afile);
-					load_books(afile);
+					printf("\t\tBorrow successfully, press any key to return...\n");
+					account_saving(*logger);
+					file=fopen("bookfile","wb");   //通过只写的方式打开二进制文件（bookfile），并且打开时清空文件中原有的内容  
+					if(file==NULL)
+					{
+						printf("cannot open file"); 
+					}
+					if(fwrite(book_head,M,1,file)!=1)   //向文件指针file指向的文件中输入pointer指针所指向的信息 
+					{
+						printf("write error!"); 
+					}
+						fclose(file);   //关闭当前文件 
+					if(book_head!=NULL)   //如果头指针不是NULL 
+					{
+						pointer=book_head->nextbook;     //让pointer成为第二个节点的指针 
+						file=fopen("bookfile","ab");   //用追加的方式打开bookfile二进制文件
+						if(file==NULL)
+					{
+						printf("cannot open file");
+					}
+					while(pointer!=NULL)
+					{
+						if(fwrite(pointer,M,1,file)!=1)//向文件指针file指向的文件中输入pointer指针所指向的信息 
+					{
+						printf("write error!");
+					}
+						pointer=pointer->nextbook;
+					}
+						fclose(file);  //关闭文件 
+					}
 					getch();
 					break;
 				}
 				else 
 				{
-					if(ny == 'N')
+					if(ny == '2')
 					{
-					printf("借阅取消，按任意键返回。。。\n");
+					printf("\t\tTo cancel borrowing, press any key to return...\n");
 					getch();
 					}
 					else 
 					{
-						printf("输入有错，按任意键返回。。。\n");  
+						printf("\t\tInput error, press any key to return...\n");  
 						getch();
 					}	
 					break;
@@ -105,15 +131,94 @@ void borrow()
 			}
 			else 
 			{
-				printf("此书数量为零，请借阅其他书籍");
+				printf("The quantity of this book is zero, please borrow other books");
 				break; 
 			}
 		}
 	}
 	else{
-		printf("您借阅的书籍数以达到上限，请先归还已借图书"); 
+		printf("The number of books you borrowed has reached the upper limit. Please return the borrowed books first"); 
 	}
 }
+//还书模块
+void return_book(){
+	pbook rebook,rebooks,pointer,rebookss;
+	FILE *afile,*file;
+	rebook=load_books();
+	int i;
+	unsigned int return_id; 
+	if(logger->Borrow!=0)
+	{	
+		printf("Books you borrowed:"); 
+		printf("\t\t**********************Book information******************************\n");
+		printf("\t\t--------------------------------------------------------------------\n");
+		printf("\t\t     ID        Title        authors         years        copies     \n");
+		printf("\t\t--------------------------------------------------------------------\n");
+		for(i=0;i<logger->Borrow;i=i+1)
+		{
+			while(rebook!=NULL)
+			{
+				if(rebook!=NULL&&rebook->id==logger->borrow[i])
+				{
+					printf("\t\t   %u\t\t%s\t\t%s\t\t%u\t\t%u\n",rebook->id,rebook->title,rebook->authors,rebook->year,rebook->copies);			
+				}
+				rebook=rebook->nextbook;
+			}
+		}
+		printf("\n\t\tPlease enter the ID of the book to be returned:\n");
+		scanf("%u",&return_id);
+		rebooks=load_books();
+		rebookss=rebooks;
+		while(rebooks!=NULL)
+		{
+			if(rebooks!=NULL&&rebooks->id==return_id)
+			{
+				for(i=0;i<logger->Borrow;i=i+1){
+					if(logger->borrow[i]==return_id){
+						logger->borrow[i]=0;
+						rebooks->copies=rebooks->copies+1;
+						logger->Borrow=logger->Borrow-1;
+						file=fopen("bookfile","wb");   //通过只写的方式打开二进制文件（bookfile），并且打开时清空文件中原有的内容   
+						if(file==NULL)
+						{
+							printf("cannot open file"); 
+						}
+						if(fwrite(rebookss,M,1,file)!=1)   //向文件指针file指向的文件中输入pointer指针所指向的信息 
+						{
+							printf("write error!"); 
+						}
+						fclose(file);   //关闭当前文件 
+						if(rebookss!=NULL)   //如果头指针不是NULL 
+						{
+							pointer=rebookss->nextbook;     //让pointer指向链表中第二个结点 
+							file=fopen("bookfile","ab");   //以追加的方式打开二进制文件 
+						if(file==NULL)
+						{
+							printf("cannot open file");
+						}
+						while(pointer!=NULL)
+						{
+							if(fwrite(pointer,M,1,file)!=1)//将pointer指向信息写入file所指向的文件中
+						{
+							printf("write error!");
+						}
+							pointer=pointer->nextbook;
+						}
+							fclose(file);  //关闭文件 
+						}
+						account_saving(*logger);
+						printf("\t\tSuccess in returning books\n");
+					}
+				}
+			}
+			rebooks=rebooks->nextbook;
+		}
+	}
+	else{
+		printf("\t\tyou did not borrow books\n");
+	}
+}
+
 //存储账号模块    
 void account_saving(Account A)   //将用户注册账号及信息写入文件 
 {
@@ -180,19 +285,19 @@ void logon()
 	while(1)
  	{
  		//创建用户名
- 		printf("\t\t请输入用户名[不能大于12个字符]：");
+ 		printf("\t\tPlease enter the user name [no more than 12 characters]:");
  		scanf("%s",register_account);
   		
  		//判断用户名是否正确 
  		if(strlen(register_account)<=12)		
  		{
  			if(strcmp(register_account,librarian_account)==0){
- 				printf("\n\t\t用户名已存在\n");
+ 				printf("\n\t\tThe user name already exists\n");
  				continue;
 			 }
  			while(pa!=NULL){
  				if(strcmp(pa->register_account,register_account)==0){
- 					printf("\n\t\t用户名已存在\n");
+ 					printf("\n\t\tThe user name already exists\n");
  					pa = load_account();
  					y=1;
 					break; 
@@ -210,7 +315,7 @@ void logon()
         			reg_a.register_account[x] = register_account[x];
     			}	  				
  				//创建用户密码
- 				printf("\n\t\t请输入密码[密码长度为六位]：");
+ 				printf("\n\t\tPlease enter the password [password length is 6 digits]：");
  				scanf("%s",register_password);
   
  				//判断用户密码格式 
@@ -220,37 +325,24 @@ void logon()
     				{
         				reg_a.register_password[x] = register_password[x];
     				}		 					
- 					printf("\n\n\t\t注册成功，您的用户名是%s,密码是%s\n\n",register_account,register_password);
+ 					printf("\n\n\t\tRegistration is successful. Your user name is %s,The password is %s\n\n",register_account,register_password);
  					break;
  				}
  				else
  				{
- 					printf("\n\t\t密码的长度为%d，请重新输入\n",strlen(register_password));
+ 					printf("\n\t\tThe length of the password is %d，Please re-enter\n",strlen(register_password));
  				}
  			}
  			break;
  		}
  		else
  		{
- 			printf("\n\t\t用户名的长度为%d，请重新输入\n\n",strlen(register_account));
+ 			printf("\n\t\tThe length of the user name is %d，Please re-enter\n\n",strlen(register_account));
  		}
  	}
 	account_saving(reg_a);
 }
   
-//判断是否注册
-int whether_register()
-{
- 	account pa = load_account();
- 	if(pa==NULL)
- 	{
- 		return 0;
- 	}
- 	else
- 	{
- 		return 1;
- 	}
-}
   
 //用户登录
 account loging()
@@ -259,21 +351,16 @@ account loging()
  	account log_head = load_account() , current_account = NULL;
  	system("pause");
  	system("cls");
-	if(whether_register()==0){
-		printf("您还未注册,请先创建账号\n");
-		return NULL;
-	}
-	
- 	printf("\n\n\t\t\t欢迎使用图书馆登录系统\n\n");
+ 	printf("\n\n\t\t\tWelcome to the library login system\n\n");
  	//三次登录验证
  	for(x=1;x<=3;x++)
  	{
- 		printf("\t\t请输入用户名:");
+ 		printf("\t\tPlease enter the user name:");
  		scanf("%s",log_account);
- 		printf("\n\t\t请输入密 码:");
+ 		printf("\n\t\tPlease input a password:");
  		scanf("%s",log_password);
  		if(strcmp(log_account,librarian_account)==0&&strcmp(log_password,librarian_account)==0){
-			printf("\t\t成功以图书馆管理员的身份登入\n"); //以图书管理员的身份登入
+			printf("\t\tLog in as librarian\n"); //以图书管理员的身份登入
 			current_account=&accounts;
 			strcpy(current_account->register_account,"librarian");
 			break; 
@@ -282,7 +369,7 @@ account loging()
  		{
  			if(strcmp(log_head->register_account,log_account)==0&&strcmp(log_head->register_password,log_password)==0)	
  			{
-				printf("\n\n\t\t登录成功，欢迎使用腾讯QQ系统\n\n");
+				printf("\n\n\t\t Login successful\n\n");
 				current_account = log_head; 
  				y = 1; 
  				break;
@@ -291,7 +378,7 @@ account loging()
  		}
  		if(y==0)
  		{
- 			printf("\n\n\t\t登录失败，请重新登录，您还有%d次机会\n\n",3-x);
+ 			printf("\n\n\t\tLogin failed. Please log in again. You have %d chances\n\n",3-x);
  		}
  		if(y==1)
 		{
@@ -301,80 +388,31 @@ account loging()
  	}
   	return current_account;
 }
-//还书模块
-void return_book(){
-	pbook rebook,rebooks;
-	FILE *afile;
-	rebook=bookhead;
-	int i;
-	unsigned int return_id; 
-	if(logger->Borrow!=0)
-	{	
-		printf("您借阅的书籍:"); 
-		printf("**************************图书总览*****************************\n");
-		printf("---------------------------------------------------------------\n");
-		printf("登录号        书名        作者名         出版时间          数量\n");
-		printf("---------------------------------------------------------------\n");	
-		for(i=0;i<logger->Borrow;i=i+1)
-		{
-			while(rebook!=NULL)
-			{
-				if(rebook!=NULL&&rebook->id==logger->borrow[i])
-				{
-					printf("%d%14s%14s         %.2f%12d\n",rebook->id,rebook->title,rebook->authors,rebook->year,rebook->copies);
-				}
-				rebook=rebook->nextbook;
-			}
-		}
-		printf("\n请输入所要归还书籍的ID:\n");
-		scanf("%u",&return_id);
-		rebooks=bookhead;
-		while(rebooks!=NULL)
-		{
-			if(rebooks!=NULL&&rebooks->id==return_id)
-			{
-				for(i=0;i<logger->Borrow;i=i+1){
-					if(logger->borrow[i]==return_id){
-						logger->borrow[i]=0;
-						rebooks->copies=rebooks->copies+1;
-						logger->Borrow=logger->Borrow-1;
-						printf("还书成功\n");
-						store_books(afile);
-						load_books(afile);
-					}
-				}
-			}
-			rebooks=rebooks->nextbook;
-		}
-	}
-	else{
-		printf("当前用户没有借阅书籍\n");
-	}
-}
-void terminate()       //退出软件 
+
+void terminate()       //终止整个软件 
 {
 	int i;
 	system("cls");
 	setxy(20,10);
-	printf("-----------------------");
+	printf("-------------------------------------");
 	setxy(20,12);
-	printf("|   您确定要退出吗？  |");
+	printf("|   Are you sure you want to exit?  |");
 	setxy(20,14);
-	printf("| 1.确定     2.取消   |");
+	printf("| 1. Confirm            2. Cancel   |");
 	setxy(20,16);
-	printf("-----------------------\n");
+	printf("-------------------------------------\n");
 	while(1)
 	{
-		scanf("%d",&i);         //输入选择 
+		scanf("%d",&i);         //让用户输入选择 
 		switch(i)
 		{
 			case 1:
 			setxy(20,18);
-			printf("已安全退出软件\n");
+			printf("The software has been safely exited\n");
 			setxy(20,20);
-			printf("谢谢使用！");
+			printf("Thank you for using！\n");
 			exit(0);  
-			break; //结束程序 
+			break; //结束整个程序 
 			case 2:
 			Mainmenu(); //重新进入主菜单 
 			break;    

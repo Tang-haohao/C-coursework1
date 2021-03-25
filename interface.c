@@ -38,8 +38,6 @@ void Mainmenu()
 	logger = NULL; 
     do
 	{	
-		store_books(afile);
-		load_books(afile);
 		system("pause");
 		system("cls");
 		int a, b;
@@ -63,7 +61,7 @@ void Mainmenu()
     	setxy(20,15);
     	printf("************************************************");
     	setxy(20,16);
-    	printf("请输入你的选择(0-5):[ ]");
+    	printf("Please enter your choice (0-5): []");
     	a=xlocation();
     	b=ylocation();
     	setxy(a-2,b);
@@ -85,7 +83,7 @@ void Mainmenu()
 			}
 			else if(logger!=NULL)
 			{
-				printf("\n\t\t对不起，检测到您是非管理员账号，请重新登录\n");	
+				printf("\n\t\tSorry, it is detected that you are not an administrator account, please login again\n");	
 			}
 			break;
 			case 4:search_book();
@@ -142,33 +140,32 @@ void administrator_menu()
 	{
 		system("pause");
 		system("cls");  //清屏 
-		printf("\t\t      图书管理系统       \n\n");
+		printf("\t\t      Library management system       \n\n");
 
-		printf("\t\t|     1.添加书籍        |\n\n");
+		printf("\t\t|     1. Add books                   |\n\n");
 
-		printf("\t\t|     2.删减书籍        |\n\n");
+		printf("\t\t|     2. Deletion of books           |\n\n");
 
-		printf("\t\t|     3.查询书籍        |\n\n");
+		printf("\t\t|     3. Book Search                 |\n\n");
 
-		printf("\t\t|     4.修改书籍        |\n\n");
+		printf("\t\t|     4. Revise books                |\n\n");
 
-		printf("\t\t|     0.返回主菜单      |\n\n");
-		int i =6;
-		scanf("%d",&i);
+		printf("\t\t|     0. Return to the main menu     |\n\n");
+		char i=getch();
 		switch(i)
 		{
-			case 0:Mainmenu();
+			case '0':Mainmenu();
 			break;
-			case 1:add_book(book1);
+			case '1':add_book(book1);
 			break;
-			case 2:remove_book(book1);
+			case '2':remove_book(book1);
 			break;
-			case 3:search_book();
+			case '3':search_book();
 			break;
-			case 4:amend_book();
+			case '4':change_book();
 			break;
 			default :break;
-		 } 
+		} 
 	}while(1);
 }
 
