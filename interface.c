@@ -6,7 +6,7 @@
 #include <conio.h>
 #include<windows.h>
 #include <stdlib.h>
-
+extern account Account_pointer;
 extern char librarian_account[];
 account logger;
 //让光标处在特定位置 
@@ -66,6 +66,7 @@ void Mainmenu()
     	b=ylocation();
     	setxy(a-2,b);
     	scanf("%d",&Num);
+    	Account_pointer=load_account();
 		switch(Num)
 		{
 			case 1:logger = loging();

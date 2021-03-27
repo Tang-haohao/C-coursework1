@@ -8,7 +8,7 @@ char librarian_account[]={"librarian"};//图书管理员的账号
 char librarian_password[]={"librarian"};//图书管理员的密码 
 char log_account[30],log_password[10];
 Account accounts;
-
+account Account_pointer;
 int display_book()   //总览所有图书 
 {
 	system("cls");
@@ -37,11 +37,13 @@ int display_book()   //总览所有图书
 	return 0;
 }
 //借阅模块 
-void borrow()
+int borrow()
 {
 	char ny;
-	int d=0; 
+	int d=0;
+	unsigned int i=0; 
 	FILE *afile,*file;
+	account _logger=Account_pointer,loggers; 
 	pbook book_head,pfind,pointer;
 	book_head = load_books();
 	unsigned int iD;
@@ -51,7 +53,16 @@ void borrow()
 		while(1)
 		{
 			printf("\t\tPlease enter the ID of the book you want to borrow:");
-			scanf("%u", &iD); 
+			scanf("%u", &iD);
+			for(i=0;i<logger->Borrow;i=i+1)
+			{
+				if(iD==logger->borrow[i])
+				{
+					printf("\t\tYou have borrowed this book, Please return it first");
+					system("pause");
+					return 0; 
+				}
+			} 
 			printf("\n\t\tIn process of Querying\n");
 			pfind=book_head;
 			printf("\t\t**********************Book information******************************\n");
@@ -82,15 +93,44 @@ void borrow()
 					logger->borrow[logger->Borrow]=iD;
 					logger->Borrow=logger->Borrow+1;
 					printf("\t\tBorrow successfully, press any key to return...\n");
-					account_saving(*logger);
-					file=fopen("bookfile","wb");   //通过只写的方式打开二进制文件（bookfile），并且打开时清空文件中原有的内容  
-					if(file==NULL)
+					//存储账户信息 
+					afile=fopen("account_file","wb");   //通过只写的方式打开二进制文件（bookfile），并且打开时清空文件中原有的内容  
+					if(afile==NULL)
 					{
 						printf("cannot open file"); 
 					}
-					if(fwrite(book_head,M,1,file)!=1)   //向文件指针file指向的文件中输入pointer指针所指向的信息 
+					if(fwrite(_logger,sizeof(Account),1,afile)!=1)   //向文件指针file指向的文件中输入pointer指针所指向的信息 
 					{
 						printf("write error!"); 
+					}
+						fclose(afile);   //关闭当前文件 
+					if(_logger!=NULL)   //如果头指针不是NULL 
+					{
+						loggers=_logger->next;     //让pointer成为第二个节点的指针 
+						afile=fopen("account_file","ab");   //用追加的方式打开bookfile二进制文件
+						if(afile==NULL)
+					{
+						printf("cannot open file");
+					}
+					while(loggers!=NULL)
+					{
+						if(fwrite(loggers,sizeof(Account),1,afile)!=1)//向文件指针file指向的文件中输入pointer指针所指向的信息 
+					{
+						printf("write error!");
+					}
+						loggers=loggers->next;
+					}
+						fclose(afile);  //关闭文件 
+					}
+					//存储书籍信息 
+					file=fopen("bookfile","wb");   //通过只写的方式打开二进制文件（bookfile），并且打开时清空文件中原有的内容  
+					if(file==NULL)
+					{
+						printf("file can not be opened"); 
+					}
+					if(fwrite(book_head,M,1,file)!=1)   //向文件指针file指向的文件中输入pointer指针所指向的信息 
+					{
+						printf("writting errors!"); 
 					}
 						fclose(file);   //关闭当前文件 
 					if(book_head!=NULL)   //如果头指针不是NULL 
@@ -99,13 +139,13 @@ void borrow()
 						file=fopen("bookfile","ab");   //用追加的方式打开bookfile二进制文件
 						if(file==NULL)
 					{
-						printf("cannot open file");
+						printf("file can not be opened");
 					}
 					while(pointer!=NULL)
 					{
 						if(fwrite(pointer,M,1,file)!=1)//向文件指针file指向的文件中输入pointer指针所指向的信息 
 					{
-						printf("write error!");
+						printf("writting errors!");
 					}
 						pointer=pointer->nextbook;
 					}
@@ -143,6 +183,7 @@ void borrow()
 //还书模块
 void return_book(){
 	pbook rebook,rebooks,pointer,rebookss;
+	account _logger=Account_pointer,loggers; 
 	FILE *afile,*file;
 	rebook=load_books();
 	int i;
@@ -156,6 +197,7 @@ void return_book(){
 		printf("\t\t--------------------------------------------------------------------\n");
 		for(i=0;i<logger->Borrow;i=i+1)
 		{
+			rebook=load_books();  
 			while(rebook!=NULL)
 			{
 				if(rebook!=NULL&&rebook->id==logger->borrow[i])
@@ -173,19 +215,22 @@ void return_book(){
 		{
 			if(rebooks!=NULL&&rebooks->id==return_id)
 			{
-				for(i=0;i<logger->Borrow;i=i+1){
-					if(logger->borrow[i]==return_id){
+				for(i=0;i<logger->Borrow;i=i+1)
+				{
+					if(logger->borrow[i]==return_id)
+					{
 						logger->borrow[i]=0;
 						rebooks->copies=rebooks->copies+1;
 						logger->Borrow=logger->Borrow-1;
+						
 						file=fopen("bookfile","wb");   //通过只写的方式打开二进制文件（bookfile），并且打开时清空文件中原有的内容   
 						if(file==NULL)
 						{
-							printf("cannot open file"); 
+							printf("file can not be opened"); 
 						}
 						if(fwrite(rebookss,M,1,file)!=1)   //向文件指针file指向的文件中输入pointer指针所指向的信息 
 						{
-							printf("write error!"); 
+							printf("writting errors!"); 
 						}
 						fclose(file);   //关闭当前文件 
 						if(rebookss!=NULL)   //如果头指针不是NULL 
@@ -194,19 +239,47 @@ void return_book(){
 							file=fopen("bookfile","ab");   //以追加的方式打开二进制文件 
 						if(file==NULL)
 						{
-							printf("cannot open file");
+							printf("file can not be opened");
 						}
 						while(pointer!=NULL)
 						{
 							if(fwrite(pointer,M,1,file)!=1)//将pointer指向信息写入file所指向的文件中
 						{
-							printf("write error!");
+							printf("writting errors!");
 						}
 							pointer=pointer->nextbook;
 						}
 							fclose(file);  //关闭文件 
 						}
-						account_saving(*logger);
+						//存储账号信息 
+						afile=fopen("account_file","wb");   //通过只写的方式打开二进制文件（bookfile），并且打开时清空文件中原有的内容  
+						if(afile==NULL)
+						{
+							printf("file can not be opened"); 
+						}
+						if(fwrite(_logger,sizeof(Account),1,afile)!=1)   //向文件指针file指向的文件中输入pointer指针所指向的信息 
+						{
+							printf("writting error!"); 
+						}
+						fclose(afile);   //关闭当前文件 
+						if(_logger!=NULL)   //如果头指针不是NULL 
+						{
+							loggers=_logger->next;     //让pointer成为第二个节点的指针 
+							afile=fopen("account_file","ab");   //用追加的方式打开bookfile二进制文件
+						if(afile==NULL)
+						{
+							printf("file can not be opened");
+						}
+						while(loggers!=NULL)
+						{
+							if(fwrite(loggers,sizeof(Account),1,afile)!=1)//向文件指针file指向的文件中输入pointer指针所指向的信息 
+						{
+							printf("writting error!");
+						}
+							loggers=loggers->next;
+						}
+						fclose(afile);  //关闭文件 
+						}
 						printf("\t\tSuccess in returning books\n");
 					}
 				}
@@ -247,12 +320,12 @@ account load_account()      //将二进制文件的内容读入到链表中，返回链表头指针
  	file=fopen("account_file","ab+");     //用读写的方式打开二进制文件 
 	if(file==NULL)
 	{
-		printf("cannot open file\n");
+		printf("file can not be opened\n");
 	}
 	while(!feof(file))        //判断读取标志是否已经到达文件的末尾 
 	{
 	   i++;
-	   	a=(account)malloc(sizeof(Account)); //用malloc给a申请一段空间 
+	   a=(account)malloc(sizeof(Account)); //用malloc给a申请一段空间 
 	   fread(a,sizeof(Account),1,file);     //将file指向的文件的内容读入指针a中 
 	   if(i==1)
 	   {
@@ -267,10 +340,14 @@ account load_account()      //将二进制文件的内容读入到链表中，返回链表头指针
 		}
     }
     if(ar!=NULL)
+	{
        ar->next=NULL;
-    else
-       account_head=NULL;
-    fclose(file);    //关闭文件 
+	}
+	else
+	{     
+	   account_head=NULL;
+	}
+	fclose(file);    //关闭文件 
     return account_head;   //返回头指针 
 }
 
@@ -278,7 +355,7 @@ account load_account()      //将二进制文件的内容读入到链表中，返回链表头指针
 void logon()
 {
 	Account reg_a;
-	account pa = load_account();  //返回头指针 
+	account pa = Account_pointer;  //返回头指针 
 	int x = 0, y = 0;
  	//清空屏幕 
  	system("cls");
@@ -348,13 +425,14 @@ void logon()
 account loging()
 {
  	int x , y = 0;
- 	account log_head = load_account() , current_account = NULL;
+ 	account log_head = Account_pointer , current_account = NULL;
  	system("pause");
  	system("cls");
  	printf("\n\n\t\t\tWelcome to the library login system\n\n");
  	//三次登录验证
  	for(x=1;x<=3;x++)
  	{
+ 		log_head = Account_pointer; 
  		printf("\t\tPlease enter the user name:");
  		scanf("%s",log_account);
  		printf("\n\t\tPlease input a password:");

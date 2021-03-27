@@ -23,7 +23,7 @@ typedef Account *account;
 
 //函数定义
 int display_book(); //总览所有图书
-void borrow(); //借阅模块
+int borrow(); //借阅模块
 void account_saving(Account A); //存储账号模块 
 account load_account(); //读取存储账号信息的文件 
 void logon(); //创建账户模块 

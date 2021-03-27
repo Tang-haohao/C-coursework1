@@ -72,7 +72,7 @@ int add_book(Book book)
 	{
 		system("cls");
 		char select;
-		pbook pointer1,pointer2=load_books();
+		pbook pointer1,pointer2=load_books(),_bookhead=load_books();
 		unsigned int new_ID;     //ID号 
 		char new_name[20];      //书名 
 		char author[20];       //作者名 
@@ -89,6 +89,7 @@ int add_book(Book book)
 				{
 					printf("\n\t\tID already exists, please re-enter:");
 					scanf("%u",&new_ID);
+					pointer2=_bookhead;
 				}
 				pointer2=pointer2->nextbook;
 			}
@@ -164,7 +165,7 @@ int remove_book(Book book)
 			if(pointer!=NULL&&strcmp(pointer->title,title)==0)
 			{
 				intj++;
-				printf("\t\t   %u\t\t%s\t\t%s\t\t%u\t\t%u\n",pointer->id,pointer->title,pointer->authors,pointer->year,pointer->copies);				
+				printf("\t\t %d %u\t\t%s\t\t%s\t\t%u\t\t%u\n",intj,pointer->id,pointer->title,pointer->authors,pointer->year,pointer->copies);				
 				pointer->number=intj;
 			}
 			pointer=pointer->nextbook;
@@ -238,7 +239,7 @@ int remove_book(Book book)
 			}
 		}
 		free(pointer);		//释放内存 
-		file=fopen("mybook","wb");		//打开二进制文件 
+		file=fopen("bookfile","wb");		//打开二进制文件,同时清空其中内容 
 		if(file==NULL)
 		{
 			printf("cannot open file"); 
@@ -251,7 +252,7 @@ int remove_book(Book book)
 		if(bookhead!=NULL)
 		{
 			pointer=bookhead->nextbook;
-			file=fopen("mybook","ab");
+			file=fopen("bookfile","ab");
 			if(file==NULL)
 			{
 				printf("cannot open file");
@@ -290,43 +291,6 @@ int remove_book(Book book)
 	}while(1);
 } 
 
-//finds books with a given title.
-//returns a BookArray structure, where the field "array" is a newly allocated array of books, or null if no book with the 
-//provided title can be found. The length of the array is also recorded in the returned structure, with 0 in case
-//array is the null pointer.
-BookArray find_book_by_title (const char *title)
-{ 
-	system("cls"); 
-	int y=0;  
-	pbook book_head=NULL,pfind=NULL;
-	book_head = load_books();
-	BookArray parray;
-	char atitle[20];
-	printf("Please enter the title of the book you want to query: ");
-	scanf("%s", atitle); 
-	printf("\nQuerying\n");
-	pfind=book_head;
-	printf("\t\t**************************Book overview*****************************\n");
-	printf("\t\t--------------------------------------------------------------------\n");
-	printf("\t\t     ID        Title        authors         years        copies     \n");
-	printf("\t\t--------------------------------------------------------------------\n");
-	while(pfind!=NULL)
-	{
-		if(pfind!=NULL&&strcmp(pfind->title,atitle)==0)
-		{
-			printf("\t\t   %u\t\t%s\t\t%s\t\t%u\t\t%u\n",pfind->id,pfind->title,pfind->authors,pfind->year,pfind->copies);			y=1;
-		}
-		pfind=pfind->nextbook;
-	}
-	if(y==0)
-	{
-		printf("\n\t\tNo corresponding bibliography found\n");
-	}
-	system("pause");
-	search_book();
-	return parray;
-}
-
 //修改图书相关信息 
 void change_book()    
 {
@@ -362,7 +326,7 @@ void change_book()
 			if(pointer!=NULL&&strcmp(pointer->title,_title)==0)
 			{
 				intj++;
-				printf("\t\t   %u\t\t%s\t\t%s\t\t%u\t\t%u\n",pointer->id,pointer->title,pointer->authors,pointer->year,pointer->copies);				
+				printf("\t\t %d %u\t\t%s\t\t%s\t\t%u\t\t%u\n",intj,pointer->id,pointer->title,pointer->authors,pointer->year,pointer->copies);				
 				pointer->number=intj;    //给符号条件的书目编号 
 			}
 			pointer=pointer->nextbook;
@@ -484,6 +448,42 @@ void change_book()
 	}while(1);
 }
 
+//finds books with a given title.
+//returns a BookArray structure, where the field "array" is a newly allocated array of books, or null if no book with the 
+//provided title can be found. The length of the array is also recorded in the returned structure, with 0 in case
+//array is the null pointer.
+BookArray find_book_by_title (const char *title)
+{ 
+	system("cls"); 
+	int y=0;  
+	pbook book_head=NULL,pfind=NULL;
+	book_head = load_books();
+	BookArray parray;
+	char atitle[20];
+	printf("Please enter the title of the book you want to query: ");
+	scanf("%s", atitle); 
+	printf("\nQuerying\n");
+	pfind=book_head;
+	printf("\t\t**************************Book overview*****************************\n");
+	printf("\t\t--------------------------------------------------------------------\n");
+	printf("\t\t     ID        Title        authors         years        copies     \n");
+	printf("\t\t--------------------------------------------------------------------\n");
+	while(pfind!=NULL)
+	{
+		if(pfind!=NULL&&strcmp(pfind->title,atitle)==0)
+		{
+			printf("\t\t   %u\t\t%s\t\t%s\t\t%u\t\t%u\n",pfind->id,pfind->title,pfind->authors,pfind->year,pfind->copies);			y=1;
+		}
+		pfind=pfind->nextbook;
+	}
+	if(y==0)
+	{
+		printf("\n\t\tNo corresponding bibliography found\n");
+	}
+	system("pause");
+	search_book();
+	return parray;
+}
 //finds books with the given authors.
 //returns a BookArray structure, where the field "array" is a newly allocated array of books, or null if no book with the 
 //provided title can be found. The length of the array is also recorded in the returned structure, with 0 in case
